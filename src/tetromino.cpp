@@ -1,15 +1,15 @@
-#include "tetromino.hpp"
-#include <cstring>
-#include <string>
+#include "tetris.hpp"
 
 namespace tetris {
 void Tetromino::spawn_tetromino(tetrominoes block) {
+	position.first = 4;
+	position.second = 1;
+	tetromino_type = block;
 	switch (block) {
-		pos_x = 5;
 	case tetrominoes::I:
-		tetromino = {{{' ', ' ', ' ', ' '},
+		tetromino = {{{'I', 'I', 'I', 'I'},
 					  {' ', ' ', ' ', ' '},
-					  {'I', 'I', 'I', 'I'},
+					  {' ', ' ', ' ', ' '},
 					  {' ', ' ', ' ', ' '}}};
 		break;
 	case tetrominoes::J:
@@ -25,27 +25,27 @@ void Tetromino::spawn_tetromino(tetrominoes block) {
 					  {' ', ' ', ' ', ' '}}};
 		break;
 	case tetrominoes::O:
-		tetromino = {{{' ', ' ', ' ', ' '},
+		tetromino = {{{' ', 'O', 'O', ' '},
 					  {' ', 'O', 'O', ' '},
-					  {' ', 'O', 'O', ' '},
+					  {' ', ' ', ' ', ' '},
 					  {' ', ' ', ' ', ' '}}};
 		break;
 	case tetrominoes::S:
-		tetromino = {{{' ', ' ', ' ', ' '},
-					  {' ', ' ', 'S', 'S'},
+		tetromino = {{{' ', ' ', 'S', 'S'},
 					  {' ', 'S', 'S', ' '},
+					  {' ', ' ', ' ', ' '},
 					  {' ', ' ', ' ', ' '}}};
 		break;
 	case tetrominoes::T:
-		tetromino = {{{' ', ' ', ' ', ' '},
-					  {' ', ' ', 'T', ' '},
+		tetromino = {{{' ', ' ', 'T', ' '},
 					  {' ', 'T', 'T', 'T'},
+					  {' ', ' ', ' ', ' '},
 					  {' ', ' ', ' ', ' '}}};
 		break;
 	case tetrominoes::Z:
-		tetromino = {{{' ', ' ', ' ', ' '},
-					  {' ', 'Z', 'Z', ' '},
+		tetromino = {{{' ', 'Z', 'Z', ' '},
 					  {' ', ' ', 'Z', 'Z'},
+					  {' ', ' ', ' ', ' '},
 					  {' ', ' ', ' ', ' '}}};
 		break;
 	}
@@ -58,6 +58,7 @@ void Tetromino::print_tetromino() const {
 		std::cout << '\n';
 	}
 }
+//! rotation doesn't work
 void Tetromino::rotate_tetromino(array_2d const& game_field) {
 	if (will_fit(game_field, movement::rotation)) {
 		for (int i = 0; i < 4; ++i) {
@@ -69,109 +70,74 @@ void Tetromino::rotate_tetromino(array_2d const& game_field) {
 		}
 	}
 }
-bool Tetromino::will_fit(array_2d const& field, movement const& mov) const { return true; }
+bool Tetromino::will_fit(array_2d const& field, movement const& mov) const {
+	if (mov == movement::down) {
+		for (int i = 0; i < 4; ++i) {
+			for (int j = 0; j < 4; ++j) {
+				if (tetromino[i][j] != ' ' && tetromino[(i == 3) ? i : i + 1][j] == ' ' &&
+					field[position.second + i + 1][position.first + j] != ' ') {
+					return false;
+				}
+			}
+		}
+	}
+
+	if (mov == movement::left) {
+		for (int i = 0; i < 4; ++i) {
+			for (int j = 0; j < 4; ++j) {
+				if (tetromino[i][j] != ' ' && tetromino[(j == 0) ? j : j - 1][j] == ' ' &&
+					field[position.second + i][position.first + j - 1] != ' ') {
+					return false;
+				}
+			}
+		}
+	}
+
+	if (mov == movement::right) {
+		for (int i = 0; i < 4; ++i) {
+			for (int j = 0; j < 4; ++j) {
+				if (tetromino[i][j] != ' ' && tetromino[(j == 3) ? j : j + 1][j] == ' ' &&
+					field[position.second + i + 1][position.first + j + 1] != ' ') {
+					return false;
+				}
+			}
+		}
+	}
+
+	if (mov == movement::rotation) {
+		for (int i = 0; i < 4; ++i) {
+			for (int j = 0; j < 4; ++j) {
+				if (field[position.second + i][position.first + j + 1] != ' ') {
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+
 bool Tetromino::move_tetromino(keys key_pressed, array_2d const& field) {
 	if (key_pressed == keys::left && will_fit(field, movement::left)) {
-		--pos_x;
+		previous_position.first = position.first;
+		--position.first;
+		move = movement::left;
 		return true;
 	} else if (key_pressed == keys::right && will_fit(field, movement::right)) {
-		++pos_x;
+		previous_position.first = position.first;
+		++position.first;
+		move = movement::right;
+
+		return true;
+	} else if (key_pressed == keys::down && will_fit(field, movement::down)) {
+		previous_position.second = position.second;
+		++position.second;
+		move = movement::down;
+
 		return true;
 	}
+	move = movement::stopped;
+
 	return false;
-}
-
-void Field::render_game() const {
-	for (int i = 0; i < field_height; ++i) {
-		for (int j = 0; j < field_width; ++j) {
-			if (game_field[i][j] == '#' || game_field[i][j] == '.') {
-				std::cout << "\033[1m\033[37m" << game_field[i][j] << "\033[0m";
-			} else {
-				std::cout << "\033[1m\033[31m" << game_field[i][j] << "\033[0m";
-			}
-		}
-		std::cout << '\n';
-	}
-}
-void Field::set_game_field() {
-	// draw main field box, score field and next tetromino box
-	for (int i = 0; i < field_height; ++i) {
-		for (int j = 0; j < field_width; ++j) {
-			game_field[i][j] = ' ';
-		}
-	}
-	// game field
-	for (int i = 0; i < field_height; ++i) {
-		for (int j = 0; j < 11; ++j) {
-			if (i == 0 || i == field_height - 1 || j == 0 || j == 10) {
-				game_field[i][j] = '#';
-			}
-		}
-	}
-
-	int top = 2;
-	int bot = 8;
-	int left = 12;
-	int right = field_width - 2;
-	for (int i = top; i < bot; ++i) {
-		for (int j = left; j < right; ++j) {
-			if (i == top && j == left + 1) {
-				std::strncpy(&game_field[i][j], "=NEXT=", 6);
-			}
-			if (i == bot - 1 || j == left || j == right - 1) {
-				game_field[i][j] = '#';
-			}
-		}
-	}
-	top = 10;
-	bot = 16;
-	left = 12;
-	right = field_width - 1;
-	for (int i = top; i < bot; ++i) {
-		for (int j = left; j < right; ++j) {
-			if (i == top && j == left + 1) {
-				std::strncpy(&game_field[i][j], "=INFO==", 7);
-			}
-			if (i == top + 1 && j == left + 1) {
-				std::strncpy(&game_field[i][j], "PTS:", 4);
-			}
-			if (i == top + 3 && j == left + 1) {
-				std::strncpy(&game_field[i][j], "LVL:", 4);
-			}
-
-			if (i == bot - 1 || j == left || j == right - 1) {
-				game_field[i][j] = '#';
-			}
-		}
-	}
-}
-
-void Field::add_points(int const lines_cleared) {
-	switch (lines_cleared) {
-	case 1: score += (40 * level); break;
-	case 2: score += (100 * level); break;
-	case 3: score += (300 * level); break;
-	case 4: score += (1200 * level); break;
-	}
-}
-
-void Field::update_tetromino(Tetromino const& block) {}
-void Field::draw_next_block(Tetromino const& block) {
-	int left = 13, right = 17, top = 3, bot = 7;
-	for (int i = top; i < bot; ++i) {
-		for (int j = left; j < right; ++j) {
-			game_field[i][j] = block.get_element(i - top, j - left);
-		}
-	}
-}
-void Field::update_info() {
-	int score_y = 12;
-	int x_value = 13;
-	int level_y = 14;
-	std::string score_str = std::to_string(score);
-	std::string level_str = std::to_string(level);
-	score_str.copy(&game_field[score_y][x_value], 7);
-	level_str.copy(&game_field[level_y][x_value], 4);
 }
 
 } // namespace tetris
