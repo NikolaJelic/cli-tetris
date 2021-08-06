@@ -1,10 +1,10 @@
+#include <utility>
 #include "tetris.hpp"
 
 namespace tetris {
 void Tetromino::spawn_tetromino(tetrominoes block) {
 	position.first = 4;
 	position.second = 1;
-	tetromino_type = block;
 	switch (block) {
 	case tetrominoes::I:
 		tetromino = {{{'I', 'I', 'I', 'I'},
@@ -50,93 +50,58 @@ void Tetromino::spawn_tetromino(tetrominoes block) {
 		break;
 	}
 }
-void Tetromino::print_tetromino() const {
-	for (int i = 0; i < 4; ++i) {
-		for (int j = 0; j < 4; ++j) {
-			std::cout << tetromino[i][j];
-		}
-		std::cout << '\n';
-	}
-}
+
 //! rotation doesn't work
-void Tetromino::rotate_tetromino(array_2d const& game_field) {
-	if (will_fit(game_field, movement::rotation)) {
-		for (int i = 0; i < 4; ++i) {
-			for (int j = i + 1; j < 4; ++j) {
-				char tmp = tetromino[i][j];
-				tetromino[i][j] = tetromino[j][i];
-				tetromino[j][i] = tmp;
-			}
-		}
-	}
-}
-bool Tetromino::will_fit(array_2d const& field, movement const& mov) const {
-	if (mov == movement::down) {
-		for (int i = 0; i < 4; ++i) {
-			for (int j = 0; j < 4; ++j) {
-				if (tetromino[i][j] != ' ' && tetromino[(i == 3) ? i : i + 1][j] == ' ' &&
-					field[position.second + i + 1][position.first + j] != ' ') {
-					return false;
-				}
-			}
-		}
-	}
+void Tetromino::rotate_tetromino(array_2d const& game_field) {}
+bool Tetromino::will_fit(array_2d field, std::pair<int, int> pos, bool rotation) const {
 
-	if (mov == movement::left) {
-		for (int i = 0; i < 4; ++i) {
-			for (int j = 0; j < 4; ++j) {
-				if (tetromino[i][j] != ' ' && tetromino[(j == 0) ? j : j - 1][j] == ' ' &&
-					field[position.second + i][position.first + j - 1] != ' ') {
-					return false;
-				}
+	for (int i = position.second; i < position.second + 4; ++i) {
+		for (int j = position.first; j < position.first + 4; ++j) {
+			if (tetromino[i - position.second][j - position.first] != ' ') {
+				field[i][j] = ' ';
 			}
 		}
 	}
-
-	if (mov == movement::right) {
-		for (int i = 0; i < 4; ++i) {
-			for (int j = 0; j < 4; ++j) {
-				if (tetromino[i][j] != ' ' && tetromino[(j == 3) ? j : j + 1][j] == ' ' &&
-					field[position.second + i + 1][position.first + j + 1] != ' ') {
-					return false;
-				}
-			}
-		}
-	}
-
-	if (mov == movement::rotation) {
-		for (int i = 0; i < 4; ++i) {
-			for (int j = 0; j < 4; ++j) {
-				if (field[position.second + i][position.first + j + 1] != ' ') {
-					return false;
-				}
+	for (int i = pos.second; i < pos.second + 4; ++i) {
+		for (int j = pos.first; j < pos.first + 4; ++j) {
+			if (tetromino[i - pos.second][j - pos.first] != ' ' &&
+				(field[i][j] != ' ' || i > 23 || j < 0 || j > 9)) {
+				return false;
 			}
 		}
 	}
 	return true;
 }
 
-bool Tetromino::move_tetromino(keys key_pressed, array_2d const& field) {
-	if (key_pressed == keys::left && will_fit(field, movement::left)) {
-		previous_position.first = position.first;
-		--position.first;
-		move = movement::left;
-		return true;
-	} else if (key_pressed == keys::right && will_fit(field, movement::right)) {
-		previous_position.first = position.first;
-		++position.first;
-		move = movement::right;
-
-		return true;
-	} else if (key_pressed == keys::down && will_fit(field, movement::down)) {
-		previous_position.second = position.second;
+bool Tetromino::move_down(array_2d const& field) {
+	previous_position.first = position.first;
+	previous_position.second = position.second;
+	if (will_fit(field, {position.first, position.second + 1}, false)) {
 		++position.second;
-		move = movement::down;
-
 		return true;
 	}
-	move = movement::stopped;
+	is_dropped = true;
+	return false;
+}
 
+bool Tetromino::move_left(array_2d const& field) {
+	previous_position.first = position.first;
+	previous_position.second = position.second;
+	if (will_fit(field, {position.first - 1, position.second}, false)) {
+		--position.first;
+		return true;
+	}
+	move_down(field);
+	return false;
+}
+bool Tetromino::move_right(array_2d const& field) {
+	previous_position.first = position.first;
+	previous_position.second = position.second;
+	if (will_fit(field, {position.first + 1, position.second}, false)) {
+		++position.first;
+		return true;
+	}
+	move_down(field);
 	return false;
 }
 

@@ -2,38 +2,43 @@
 #include <iostream>
 #include <thread>
 #include <ncurses.h>
+#include "render.hpp"
 #include "tetris.hpp"
 int main(void) {
 
 	initscr();
 	noecho();
-	// cbreak();
+	cbreak();
+	curs_set(0);
 	// nonl();
 	keypad(stdscr, TRUE);
+	halfdelay(2);
 
-	endwin();
 	tetris::game_state game_state = tetris::game_state::play;
 	int i = 0;
 	tetris::Field game_field;
-	game_field.set_game_field();
+	// game_field.set_game_field();
 	tetris::Tetromino block;
+	game_field.set_game_field();
 	block.spawn_tetromino(tetris::tetrominoes::J);
-	while (i < 300) {
-		// timing
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000 - game_field.get_level() * 40));
-
-		game_field.clear_screen();
-		// game_field.draw_next_block(block);
-		if (!block.move_tetromino(tetris::keys::down, game_field.get_field())) {
-			block.spawn_tetromino(tetris::tetrominoes::L);
+	int key;
+	tetris::keys key_pressed = tetris::keys::down;
+	while (game_state == tetris::game_state::play) {
+		// std::this_thread::sleep_for(std::chrono::milliseconds(500 - game_field.get_level() *
+		// 50));
+		key = getch();
+		switch (key) {
+		case KEY_LEFT: block.move_left(game_field.get_field()); break;
+		case KEY_RIGHT: block.move_right(game_field.get_field()); break;
+		case KEY_UP: block.rotate_tetromino(game_field.get_field()); break;
+		case KEY_DOWN: block.move_down(game_field.get_field()); break;
+		case ERR: block.move_down(game_field.get_field()); break;
+		case KEY_EXIT: return 0; break;
+		case 'p': game_state = tetris::game_state::pause; break;
 		}
-		if (char ch = getch() == 'l') {
-			block.move_tetromino(tetris::keys::left, game_field.get_field());
-		}
-		game_field.add_points(2);
-		game_field.update_info();
 		game_field.update_tetromino(block);
-		game_field.render_game();
+		render_game(game_field, block);
 		++i;
 	}
+	endwin();
 }
