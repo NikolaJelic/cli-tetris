@@ -4,7 +4,8 @@
 namespace tetris {
 void Tetromino::spawn_tetromino(tetrominoes block) {
 	position.first = 4;
-	position.second = 1;
+	position.second = 0;
+	is_dropped = false;
 	switch (block) {
 	case tetrominoes::I:
 		tetromino = {{{'I', 'I', 'I', 'I'},
@@ -91,7 +92,6 @@ bool Tetromino::move_left(array_2d const& field) {
 		--position.first;
 		return true;
 	}
-	move_down(field);
 	return false;
 }
 bool Tetromino::move_right(array_2d const& field) {
@@ -101,7 +101,6 @@ bool Tetromino::move_right(array_2d const& field) {
 		++position.first;
 		return true;
 	}
-	move_down(field);
 	return false;
 }
 

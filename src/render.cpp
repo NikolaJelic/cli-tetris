@@ -2,7 +2,6 @@
 #include <string>
 #include <curses.h>
 void render_game(tetris::Field const& game_field, tetris::Tetromino const& next_tetromino) {
-	start_color();
 	WINDOW *game, *next_block, *info;
 	tetris::array_2d field = game_field.get_field();
 	game = newwin(26, 12, 1, 1);
