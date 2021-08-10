@@ -1,6 +1,7 @@
 #include "render.hpp"
 #include <string>
 #include <curses.h>
+
 void render_game(tetris::Field const& game_field, tetris::Tetromino const& next_tetromino) {
 	WINDOW *game, *next_block, *info;
 	tetris::array_2d field = game_field.get_field();
@@ -33,4 +34,19 @@ void render_game(tetris::Field const& game_field, tetris::Tetromino const& next_
 	mvwprintw(info, 4, 1, "Level");
 	mvwprintw(info, 5, 1, "%d", game_field.get_level());
 	wrefresh(info);
+}
+
+void render_credits(tetris::Field const& game_field) {
+	WINDOW* credits;
+	credits = newwin(14, 16, 4, 8);
+	wborder(credits, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE, ACS_ULCORNER, ACS_URCORNER,
+			ACS_LLCORNER, ACS_LRCORNER);
+	mvwprintw(credits, 1, 2, "GAME OVER");
+	mvwprintw(credits, 4, 1, "Score");
+	mvwprintw(credits, 5, 1, "%d", game_field.get_score());
+	mvwprintw(credits, 7, 1, "Level");
+	mvwprintw(credits, 8, 1, "%d", game_field.get_level());
+	mvwprintw(credits, 10, 1, "Rows Cleared");
+	mvwprintw(credits, 11, 1, "%d", game_field.get_rows_cleared());
+	wrefresh(credits);
 }
