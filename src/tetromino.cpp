@@ -4,7 +4,9 @@
 namespace tetris {
 void Tetromino::spawn_tetromino(tetrominoes block) {
 	position.first = 4;
-	position.second = 1;
+	position.second = 0;
+	is_dropped = false;
+	previous_state = tetromino;
 	switch (block) {
 	case tetrominoes::I:
 		tetromino = {{{'I', 'I', 'I', 'I'},
@@ -51,8 +53,19 @@ void Tetromino::spawn_tetromino(tetrominoes block) {
 	}
 }
 
-//! rotation doesn't work
-void Tetromino::rotate_tetromino(array_2d const& game_field) {}
+void Tetromino::rotate_tetromino(array_2d const& game_field) {
+	array_2d ret = tetromino;
+	previous_state = tetromino;
+	if (will_fit(game_field, position, true)) {
+		for (int i = 0; i < 4; ++i) {
+			for (int j = 0; j < 4; ++j) {
+				ret[i][j] = tetromino[4 - j - 1][i];
+			}
+		}
+		is_rotated = true;
+	}
+	tetromino = ret;
+}
 bool Tetromino::will_fit(array_2d field, std::pair<int, int> pos, bool rotation) const {
 
 	for (int i = position.second; i < position.second + 4; ++i) {
@@ -62,11 +75,30 @@ bool Tetromino::will_fit(array_2d field, std::pair<int, int> pos, bool rotation)
 			}
 		}
 	}
-	for (int i = pos.second; i < pos.second + 4; ++i) {
-		for (int j = pos.first; j < pos.first + 4; ++j) {
-			if (tetromino[i - pos.second][j - pos.first] != ' ' &&
-				(field[i][j] != ' ' || i > 23 || j < 0 || j > 9)) {
-				return false;
+	if (rotation == false) {
+		// Try placing it at the new position
+		for (int i = pos.second; i < pos.second + 4; ++i) {
+			for (int j = pos.first; j < pos.first + 4; ++j) {
+				if (tetromino[i - pos.second][j - pos.first] != ' ' &&
+					(field[i][j] != ' ' || i > 23 || j < 0 || j > 9)) {
+					return false;
+				}
+			}
+		}
+	} else {
+		// rotate it and check for overlaps
+		array_2d ret;
+		for (int i = 0; i < 4; ++i) {
+			for (int j = 0; j < 4; ++j) {
+				ret[i][j] = tetromino[4 - j - 1][i];
+			}
+		}
+		for (int i = position.second; i < position.second + 4; ++i) {
+			for (int j = position.first; j < position.first + 4; ++j) {
+				if (ret[i - position.second][j - position.first] != ' ' &&
+					(field[i][j] != ' ' || i > 23 || j < 0 || j > 9)) {
+					return false;
+				}
 			}
 		}
 	}
@@ -91,7 +123,6 @@ bool Tetromino::move_left(array_2d const& field) {
 		--position.first;
 		return true;
 	}
-	move_down(field);
 	return false;
 }
 bool Tetromino::move_right(array_2d const& field) {
@@ -101,7 +132,6 @@ bool Tetromino::move_right(array_2d const& field) {
 		++position.first;
 		return true;
 	}
-	move_down(field);
 	return false;
 }
 
