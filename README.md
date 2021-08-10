@@ -4,5 +4,5 @@
 
 Command line tetris clone
 
-![](/home/nikola/Pictures/tetris.png)
+![](/home/nikola/Projects/cpp/cli-tetris/tetris.png)
 
