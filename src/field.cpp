@@ -44,6 +44,7 @@ void Field::clear_row(const int row) {
 		}
 	}
 }
+
 void Field::update_tetromino(Tetromino& block) {
 	std::pair<int, int> block_position = block.get_position();
 	std::pair<int, int> previous_position = block.get_previous_position();

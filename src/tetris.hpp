@@ -30,13 +30,14 @@ class Tetromino {
 	bool move_left(array_2d const& field);
 	bool move_right(array_2d const& field);
 	bool will_fit(array_2d field, std::pair<int, int> pos, bool rotation) const;
+	void check_level();
 	inline std::pair<int, int> get_position() const { return position; }
 	inline std::pair<int, int> get_previous_position() const { return previous_position; }
 	inline array_2d get_previous_state() const { return previous_state; }
 	inline array_2d get_current_block() const { return tetromino; }
-	inline char get_element(int const x, int const y) const {
-		if (x >= 0 && x < 4 && y >= 0 && y < 4) {
-			return tetromino[x][y];
+	inline char get_element(int const i, int const j) const {
+		if (i >= 0 && i < 4 && j >= 0 && j < 4) {
+			return tetromino[i][j];
 		}
 		return ' ';
 	}

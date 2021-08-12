@@ -18,6 +18,17 @@ int main(void) {
 	curs_set(0);
 	keypad(stdscr, TRUE);
 	halfdelay(2);
+	start_color();
+	// init colors
+	init_pair(1, COLOR_WHITE, COLOR_BLUE);
+	init_pair(2, COLOR_WHITE, COLOR_CYAN);
+	init_pair(3, COLOR_WHITE, COLOR_GREEN);
+	init_pair(4, COLOR_WHITE, COLOR_MAGENTA);
+	init_pair(5, COLOR_WHITE, COLOR_RED);
+	init_pair(6, COLOR_WHITE, COLOR_YELLOW);
+	init_pair(7, COLOR_WHITE, COLOR_WHITE);
+	init_pair(8, COLOR_BLACK, COLOR_BLACK);
+
 	// GAME INIT
 	tetris::game_state game_state = tetris::game_state::play;
 	tetris::Field game_field;
@@ -78,7 +89,7 @@ int main(void) {
 				game_state = tetris::game_state::lose;
 			}
 			game_field.add_points(game_field.check_rows());
-			if (game_field.get_rows_cleared() % 10 == 0 && game_field.get_rows_cleared() > 1) {
+			if (game_field.get_rows_cleared() == (game_field.get_level() * 5)) {
 				game_field.next_level();
 			}
 			block = next_block;

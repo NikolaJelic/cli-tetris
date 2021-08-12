@@ -3,6 +3,7 @@
 #include <curses.h>
 
 void render_game(tetris::Field const& game_field, tetris::Tetromino const& next_tetromino) {
+
 	WINDOW *game, *next_block, *info;
 	tetris::array_2d field = game_field.get_field();
 	game = newwin(26, 12, 1, 1);
@@ -10,7 +11,7 @@ void render_game(tetris::Field const& game_field, tetris::Tetromino const& next_
 			ACS_LLCORNER, ACS_LRCORNER);
 	for (int i = 0; i < 24; ++i) {
 		for (int j = 0; j < 10; ++j) {
-			mvwaddch(game, 1 + i, 1 + j, field[i][j]);
+			mvwaddch(game, 1 + i, 1 + j, '#' | COLOR_PAIR(color_indice(field[i][j])));
 		}
 	}
 	wrefresh(game);
@@ -20,7 +21,8 @@ void render_game(tetris::Field const& game_field, tetris::Tetromino const& next_
 			ACS_LLCORNER, ACS_LRCORNER);
 	for (int i = 0; i < 4; ++i) {
 		for (int j = 0; j < 4; ++j) {
-			mvwaddch(next_block, 2 + i, 1 + j, next_tetromino.get_element(i, j));
+			mvwaddch(next_block, 2 + i, 1 + j,
+					 '#' | COLOR_PAIR(color_indice(next_tetromino.get_element(i, j))));
 		}
 	}
 	wrefresh(next_block);
@@ -49,4 +51,18 @@ void render_credits(tetris::Field const& game_field) {
 	mvwprintw(credits, 10, 1, "Rows Cleared");
 	mvwprintw(credits, 11, 1, "%d", game_field.get_rows_cleared());
 	wrefresh(credits);
+}
+
+int color_indice(char shape) {
+	switch (shape) {
+	case 'I': return 1;
+	case 'J': return 2;
+	case 'S': return 3;
+	case 'T': return 4;
+	case 'Z': return 5;
+	case 'L': return 6;
+	case 'O': return 7;
+	case ' ': return 8;
+	}
+	return 8;
 }
