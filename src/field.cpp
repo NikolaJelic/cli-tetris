@@ -2,13 +2,7 @@
 
 namespace tetris {
 
-void Field::set_game_field() {
-	for (int i = 0; i < field_height; ++i) {
-		for (int j = 0; j < field_width; ++j) {
-			game_field[i][j] = ' ';
-		}
-	}
-}
+void Field::set_game_field() { std::memset(&game_field[0][0], ' ', sizeof(game_field)); }
 
 void Field::add_points(int const lines_cleared) {
 	switch (lines_cleared) {
